@@ -4,7 +4,7 @@ Visual diff for PDF images.
 
 ## Usage
 
-  $ diff_pdf_image_rb a.pdf b.pdf
+    $ diff_pdf_image_rb a.pdf b.pdf
 
 ## Require
 - ghostscript

@@ -30,7 +30,12 @@ gs \
 #{@src_path.expand_path}
 COMMAND
     system(command)
-    result_images = Dir.glob("#{dst_path.expand_path}/*#{@src_path.basename.to_s}*.jpg")
+    re = /^.*\.pdf_(\d+)\.jpg$/
+    result_images = Dir.glob("#{dst_path.expand_path}/*#{@src_path.basename.to_s}*.jpg").sort do |a,b|
+      a_no = a.match(re)[1].to_i
+      b_no = b.match(re)[1].to_i
+      a_no <=> b_no
+    end
     result_images.map {|ri| Image.new(ri)}
   end
 

@@ -1,4 +1,6 @@
 #!/usr/bin/env ruby
+# -*- coding: utf-8 -*-
+require 'fileutils'
 require 'pathname'
 require 'tmpdir'
 
@@ -145,4 +147,13 @@ pdf2_path = ARGV[1]
 #page_no = nil
 
 diff_image_path = Differ.diff_page(pdf1_path, pdf2_path)
-system("open #{tmpdir}")
+
+def cp_diff_images(images, dstdir="./diff_images_#{Time.now.to_i.to_s}")
+  Dir.mkdir(dstdir)
+  images.each do |path|
+    FileUtils.cp(path, Pathname.new(dstdir) + Pathname.new(path).basename)
+  end
+  system("open #{dstdir}")
+end
+cp_diff_images(diff_image_path)
+FileUtils.rm_rf(tmpdir)

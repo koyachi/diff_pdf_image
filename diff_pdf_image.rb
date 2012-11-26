@@ -135,7 +135,35 @@ module Differ
           image2 = cover_images2[i]
           results.push(Image.diff(image1.path, image2.path, "%03d" % i.to_s))
         end
+
+        cp_diff_images(results, dst_dir)
+        save_info(dst_dir, pdf1_path, pdf2_path)
+        FileUtils.rm_rf(tmpdir)
+
         results
+      end
+    end
+
+    private
+    @dst_dir
+    def dst_dir
+      @dst_dir ||= "./diff_images_#{Time.now.to_i.to_s}"
+    end
+
+    def cp_diff_images(images, dstdir)
+      Dir.mkdir(dstdir)
+      images.each do |path|
+        FileUtils.cp(path, Pathname.new(dstdir) + Pathname.new(path).basename)
+      end
+      system("open #{dstdir}")
+    end
+
+    def save_info(dstdir, pdf1_path, pdf2_path)
+      open("#{dstdir}/info.txt", "w") do |f|
+        f.write("date: #{Time.now}\n")
+        f.write("----\n")
+        f.write("pdf1(red): #{Pathname.new(pdf1_path).realpath}\n")
+        f.write("pdf2(blue): #{Pathname.new(pdf2_path).realpath}\n")
       end
     end
   end
@@ -146,14 +174,4 @@ pdf1_path = ARGV[0]
 pdf2_path = ARGV[1]
 #page_no = nil
 
-diff_image_path = Differ.diff_page(pdf1_path, pdf2_path)
-
-def cp_diff_images(images, dstdir="./diff_images_#{Time.now.to_i.to_s}")
-  Dir.mkdir(dstdir)
-  images.each do |path|
-    FileUtils.cp(path, Pathname.new(dstdir) + Pathname.new(path).basename)
-  end
-  system("open #{dstdir}")
-end
-cp_diff_images(diff_image_path)
-FileUtils.rm_rf(tmpdir)
+Differ.diff_page(pdf1_path, pdf2_path)

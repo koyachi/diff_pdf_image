@@ -119,29 +119,27 @@ end
 
 module Differ
   class << self
-    def diff_page(pdf1_path, pdf2_path, page_no=nil)
+    def diff_page(pdf1_path, pdf2_path, use_page_numbers)
+      page_number_filter_mode = !use_page_numbers.empty?
       pdf1 = PDF.new(pdf1_path)
       pdf2 = PDF.new(pdf2_path)
-      if page_no != nil
-        # TODO
-        #cover_image1 = pdf1.to_image(:page_no => page_no).to_red_image
-        #cover_image2 = pdf2.to_image(:page_no => page_no).to_blue_image
-        #diff_image = Image.diff_image(cover_image1, cover_image2)
-      else
-        cover_images1 = pdf1.to_images(tmpdir)
-        cover_images2 = pdf2.to_images(tmpdir)
-        results = []
-        cover_images1.each_with_index do |image1, i|
-          image2 = cover_images2[i]
-          results.push(Image.diff(image1.path, image2.path, "%03d" % i.to_s))
+      cover_images1 = pdf1.to_images(tmpdir)
+      cover_images2 = pdf2.to_images(tmpdir)
+      results = []
+      cover_images1.each_with_index do |image1, i|
+        if page_number_filter_mode # check use page number
+          next unless use_page_numbers.include? i.to_s
         end
 
-        cp_diff_images(results, dst_dir)
-        save_info(dst_dir, pdf1_path, pdf2_path)
-        FileUtils.rm_rf(tmpdir)
-
-        results
+        image2 = cover_images2[i]
+        results.push(Image.diff(image1.path, image2.path, "%03d" % i.to_s))
       end
+
+      cp_diff_images(results, dst_dir)
+      save_info(dst_dir, pdf1_path, pdf2_path)
+      FileUtils.rm_rf(tmpdir)
+
+      results
     end
 
     private
@@ -169,9 +167,8 @@ module Differ
   end
 end
 
-
 pdf1_path = ARGV[0]
 pdf2_path = ARGV[1]
-#page_no = nil
+use_page_numbers = Array(ARGV[2..-1])
 
-Differ.diff_page(pdf1_path, pdf2_path)
+Differ.diff_page(pdf1_path, pdf2_path, use_page_numbers)
